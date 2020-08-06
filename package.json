@@ -1,0 +1,18 @@
+{
+  "name": "graphql-js",
+  "version": "1.0.0",
+  "description": "- [Intro to GraphQL](#intro-to-graphql)   - [Querying a Server](#querying-a-server)     - [Aliases](#aliases)     - [Fragments](#fragments)     - [Directives](#directives)     - [Inline Fragments](#inline-fragments     - [Meta Fields](#meta-fields))   - [Mutations](#mutations)   - [Schemas](#schemas)     - [Query and Mutation Types](#query-and-mutation-types)     - [Scalar Types](#scalar-types)   - [Resolvers](#resolvers) - [GraphQL.js](#graphql.js)   - [Express And Graph.QL](#express-and-graph.ql) - [GraphQL and React](#graphql-and-react)",
+  "main": "server.js",
+  "dependencies": {
+    "express": "^4.17.1",
+    "express-graphql": "^0.11.0",
+    "graphql": "^15.3.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "CatYuan",
+  "license": "ISC"
+}
