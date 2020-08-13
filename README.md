@@ -5,8 +5,8 @@
     - [Aliases](#aliases)
     - [Fragments](#fragments)
     - [Directives](#directives)
-    - [Inline Fragments](#inline-fragments
-    - [Meta Fields](#meta-fields))
+    - [Inline Fragments](#inline-fragments)
+    - [Meta Fields](#meta-fields)
   - [Mutations](#mutations)
   - [Schemas](#schemas)
     - [Query and Mutation Types](#query-and-mutation-types)
@@ -14,6 +14,9 @@
   - [Resolvers](#resolvers)
 - [GraphQL.js](#graphql.js)
   - [Express And Graph.QL](#express-and-graph.ql)
+  - [Querying From Client](#querying-from-client)
+  - [Mutations and Input on the Client](#mutations-and-input-on-the-client)
+  - [Authentication and Middleware](#authentication-and-middleware)]
 - [GraphQL and React](#graphql-and-react)
 
 # Intro to GraphQL
@@ -346,6 +349,142 @@ graphql(schema, '{ hello }', root).then((response) => {
 
 - uses npm packages `express` `express-graphql` `graphql`
 - using express with graphql allows you to run graphql queries from an api server
+
+## Querying From Client
+
+```
+fetch('/graphql', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+  },
+  body: JSON.stringify({query: "{ hello }"})
+})
+  .then(r => r.json())
+  .then(data => console.log('data returned:', data));
+```
+
+- you can use variables as follows:
+
+```
+var dice = 3;
+var sides = 6;
+var query = `query RollDice($dice: Int!, $sides: Int) {
+  rollDice(numDice: $dice, numSides: $sides)
+}`;
+
+fetch('/graphql', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+  },
+  body: JSON.stringify({
+    query,
+    variables: { dice, sides },
+  })
+})
+  .then(r => r.json())
+  .then(data => console.log('data returned:', data));
+```
+
+## Mutations and Inputs on the Client
+
+- similarly to queries, mutations are handled by the root resolver
+
+```
+type Mutation {
+  setMessage(message: String): String
+}
+
+type Query {
+  getMessage: String
+}
+```
+
+```
+var fakeDatabase = {};
+var root = {
+  setMessage: ({message}) => {
+    fakeDatabase.message = message;
+    return message;
+  },
+  getMessage: () => {
+    return fakeDatabase.message;
+  }
+};
+```
+
+- when calling the mutation from the client, the call must be prefaced by `mutation` as opposed to `query`
+
+```
+var author = 'andy';
+var content = 'hope is a good thing';
+var query = `mutation CreateMessage($input: MessageInput) {
+  createMessage(input: $input) {
+    id
+  }
+}`;
+
+fetch('/graphql', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+  },
+  body: JSON.stringify({
+    query,
+    variables: {
+      input: {
+        author,
+        content,
+      }
+    }
+  })
+})
+  .then(r => r.json())
+  .then(data => console.log('data returned:', data));
+```
+
+## Authentication and Middleware
+
+- you can use express middleware with `express-graphql`
+
+```
+var express = require('express');
+var graphqlHTTP = require('express-graphql');
+var { buildSchema } = require('graphql');
+
+var schema = buildSchema(`
+  type Query {
+    ip: String
+  }
+`);
+
+const loggingMiddleware = (req, res, next) => {
+  console.log('ip:', req.ip);
+  next();
+}
+
+var root = {
+  ip: function (args, request) {
+    return request.ip;
+  }
+};
+
+var app = express();
+app.use(loggingMiddleware);
+app.use('/graphql', graphqlHTTP({
+  schema: schema,
+  rootValue: root,
+  graphiql: true,
+}));
+app.listen(4000);
+console.log('Running a GraphQL API server at localhost:4000/graphql');
+```
+
+- for authentication, check `express-jwt` middleware
 
 # GraphQL and React
 
